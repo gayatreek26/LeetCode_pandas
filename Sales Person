@@ -1,0 +1,19 @@
+import pandas as pd
+
+def sales_person(salesperson: pd.DataFrame,
+                 company: pd.DataFrame,
+                 orders: pd.DataFrame) -> pd.DataFrame:
+
+    red_companies = company.loc[
+        company["name"] == "RED", "com_id"
+    ]
+
+    red_salespersons = orders.loc[
+        orders["com_id"].isin(red_companies), "sales_id"
+    ].unique()
+
+    result = salesperson[
+        ~salesperson["sales_id"].isin(red_salespersons)
+    ]
+
+    return result[["name"]]
