@@ -1,0 +1,103 @@
+class Node:
+    def __init__(self):
+        self.left_char = ""
+        self.right_char = ""
+        self.left_len = 0
+        self.right_len = 0
+        self.best = 0
+        self.length = 0
+
+
+class Solution:
+    def longestRepeating(self, s, queryCharacters, queryIndices):
+
+        n = len(s)
+        arr = list(s)
+
+        tree = [Node() for _ in range(4 * n)]
+
+        def merge(a, b):
+            if a.length == 0:
+                return b
+
+            if b.length == 0:
+                return a
+
+            res = Node()
+            res.length = a.length + b.length
+
+            res.left_char = a.left_char
+            res.right_char = b.right_char
+
+            res.left_len = a.left_len
+            res.right_len = b.right_len
+
+            if a.left_len == a.length and a.right_char == b.left_char:
+                res.left_len = a.length + b.left_len
+
+            if b.right_len == b.length and a.right_char == b.left_char:
+                res.right_len = a.right_len + b.length
+
+            res.best = max(a.best, b.best)
+
+            if a.right_char == b.left_char:
+                res.best = max(
+                    res.best,
+                    a.right_len + b.left_len
+                )
+
+            return res
+
+        def build(node, left, right):
+
+            if left == right:
+                tree[node].length = 1
+                tree[node].left_char = arr[left]
+                tree[node].right_char = arr[left]
+                tree[node].left_len = 1
+                tree[node].right_len = 1
+                tree[node].best = 1
+                return
+
+            mid = (left + right) // 2
+
+            build(node * 2, left, mid)
+            build(node * 2 + 1, mid + 1, right)
+
+            tree[node] = merge(
+                tree[node * 2],
+                tree[node * 2 + 1]
+            )
+
+        def update(node, left, right, pos):
+
+            if left == right:
+                tree[node].left_char = arr[pos]
+                tree[node].right_char = arr[pos]
+                return
+
+            mid = (left + right) // 2
+
+            if pos <= mid:
+                update(node * 2, left, mid, pos)
+            else:
+                update(node * 2 + 1, mid + 1, right, pos)
+
+            tree[node] = merge(
+                tree[node * 2],
+                tree[node * 2 + 1]
+            )
+
+        build(1, 0, n - 1)
+
+        answer = []
+
+        for char, index in zip(queryCharacters, queryIndices):
+
+            arr[index] = char
+
+            update(1, 0, n - 1, index)
+
+            answer.append(tree[1].best)
+
+        return answer
